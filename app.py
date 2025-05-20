@@ -2,6 +2,20 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date
+# 👉 Custom background color (light gray)
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #f5f5f5;
+    }
+    .stApp {
+        background-color: #f5f5f5;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 st.set_page_config(page_title="Falanqaynta Dakhliga Maalinlaha", layout="centered")
 
