@@ -4,6 +4,7 @@ import plotly.express as px
 from datetime import datetime
 import io
 from docx import Document
+from fpdf import FPDF
 
 st.set_page_config(page_title="Dakhli Analysis App", layout="wide")
 
@@ -103,6 +104,8 @@ try:
 
     # Downloads
     st.subheader("Soo Degso Xogta")
+
+    # Excel
     excel_buffer = io.BytesIO()
     df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
     st.download_button(
@@ -112,6 +115,7 @@ try:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+    # Word
     doc = Document()
     doc.add_heading("Xogta Dakhliga Canshuur Bixiyayaasha", 0)
     table = doc.add_table(rows=1, cols=len(df.columns))
@@ -132,6 +136,39 @@ try:
         data=word_buffer.getvalue(),
         file_name="dakhli_data.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+    # PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Xogta Dakhliga Canshuur Bixiyayaasha", ln=True, align="C")
+    pdf.ln(10)
+
+    # Headers
+    col_width = pdf.w / (len(df.columns) + 1)
+    for col_name in df.columns:
+        pdf.cell(col_width, 10, txt=col_name, border=1)
+    pdf.ln()
+
+    # Data
+    for _, row in df.iterrows():
+        for value in row:
+            text = str(value)
+            if len(text) > 15:
+                text = text[:15] + "..."
+            pdf.cell(col_width, 10, txt=text, border=1)
+        pdf.ln()
+
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_buffer.seek(0)
+
+    st.download_button(
+        label="📥 Soo Degso PDF",
+        data=pdf_buffer,
+        file_name="dakhli_data.pdf",
+        mime="application/pdf"
     )
 
 except FileNotFoundError:
