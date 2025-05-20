@@ -1,10 +1,13 @@
-pip install python-docx
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
 import io
+
+# Hubi inaad horay u rakibtay maktabaddan: pip install python-docx
 from docx import Document
+
+# Hubi inaad horay u rakibtay maktabaddan: pip install fpdf
 from fpdf import FPDF
 
 st.set_page_config(page_title="Dakhli Analysis App", layout="wide")
@@ -21,7 +24,6 @@ st.markdown(page_bg_color, unsafe_allow_html=True)
 
 st.title("Falanqaynta Dakhliga Maalinlaha ah ee Canshuuraha")
 
-# Xogaha dropdown
 zones = {
     "Afder": ["Bare", "Elekere", "GodGod", "Hargelle", "Mirab Imi", "Ilig Dheere", "Raaso", "Qooxle", "Doollo bay", "Baarey", "Washaaqo", "Ciid Laami", "Xagar Moqor"],
     "Dhawa": ["Hudet", "Lahey", "Mubaarak", "Qadhaadhumo", "Malka Mari", "Ceel Goof", "Ceel Orba", "Dheer Dheertu", "Ceel Dheer"],
@@ -40,7 +42,6 @@ kable_list = [f"Kable {i:02}" for i in range(1, 41)]
 tax_types = ["VAT", "TOT", "INCOME TAX", "PROFIT TAX", "LAND TAX", "PROPERTY TAX", "EXERCISE TAX", "OTHER TAX"]
 years = [str(year) for year in range(1990, datetime.now().year + 1)]
 
-# Foomka xogta
 st.header("Geli Xogta Canshuur Bixiyaha")
 
 col1, col2, col3 = st.columns(3)
@@ -86,7 +87,6 @@ if st.button("Kaydi Xogta"):
     df_all.to_csv("dakhli_data.csv", index=False)
     st.success("Xogta waa la keydiyay ✅")
 
-# Falanqayn
 st.header("Falanqaynta Dakhliga")
 try:
     df = pd.read_csv("dakhli_data.csv")
@@ -103,10 +103,8 @@ try:
     fig = px.bar(df, x='Date', y='Income', color='Tax Type', title='Dakhliga Maalinlaha ah')
     st.plotly_chart(fig, use_container_width=True)
 
-    # Downloads
     st.subheader("Soo Degso Xogta")
 
-    # Excel
     excel_buffer = io.BytesIO()
     df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
     st.download_button(
@@ -116,7 +114,6 @@ try:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
-    # Word
     doc = Document()
     doc.add_heading("Xogta Dakhliga Canshuur Bixiyayaasha", 0)
     table = doc.add_table(rows=1, cols=len(df.columns))
@@ -139,20 +136,17 @@ try:
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
 
-    # PDF
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt="Xogta Dakhliga Canshuur Bixiyayaasha", ln=True, align="C")
     pdf.ln(10)
 
-    # Headers
     col_width = pdf.w / (len(df.columns) + 1)
     for col_name in df.columns:
         pdf.cell(col_width, 10, txt=col_name, border=1)
     pdf.ln()
 
-    # Data
     for _, row in df.iterrows():
         for value in row:
             text = str(value)
