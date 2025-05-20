@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import datetime
+import io
+from docx import Document
 
 st.set_page_config(page_title="Dakhli Analysis App", layout="wide")
 
@@ -98,6 +100,39 @@ try:
 
     fig = px.bar(df, x='Date', y='Income', color='Tax Type', title='Dakhliga Maalinlaha ah')
     st.plotly_chart(fig, use_container_width=True)
+
+    # Downloads
+    st.subheader("Soo Degso Xogta")
+    excel_buffer = io.BytesIO()
+    df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
+    st.download_button(
+        label="📥 Soo Degso Excel",
+        data=excel_buffer.getvalue(),
+        file_name="dakhli_data.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    doc = Document()
+    doc.add_heading("Xogta Dakhliga Canshuur Bixiyayaasha", 0)
+    table = doc.add_table(rows=1, cols=len(df.columns))
+    hdr_cells = table.rows[0].cells
+    for i, col in enumerate(df.columns):
+        hdr_cells[i].text = col
+
+    for _, row in df.iterrows():
+        row_cells = table.add_row().cells
+        for i, value in enumerate(row):
+            row_cells[i].text = str(value)
+
+    word_buffer = io.BytesIO()
+    doc.save(word_buffer)
+
+    st.download_button(
+        label="📥 Soo Degso Word",
+        data=word_buffer.getvalue(),
+        file_name="dakhli_data.docx",
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
 
 except FileNotFoundError:
     st.info("Xog lama helin. Fadlan geli xog si aad u aragto falanqayn.")
