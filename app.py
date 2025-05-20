@@ -30,29 +30,29 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 else:
     st.subheader("Gali xogta si toos ah:")
-    with st.form("data_form"):
-        date_today = st.date_input("Taariikhda", value=date.today())
-        num_clients = st.number_input("Tirada macaamiisha maanta", min_value=0)
-        revenue_today = st.number_input("Dakhliga maanta (ETB)", min_value=0.0)
-        outstanding = st.number_input("Lacagta aan weli la bixin (ETB)", min_value=0.0)
-        tin_number = st.text_input("TIN Number")
-        tax_type = st.selectbox(
-            "Nooca Canshuurta",
-            ["VAT", "TOT", "INCOME TAX", "PROFIT TAX", "LAND TAX", "PROPERTY TAX", "EXERCISE TAX", "OTHER TAX"]
-        )
-        submitted = st.form_submit_button("Ku dar xogta")
+with st.form("data_form"):
+    date_today = st.date_input("Taariikhda", value=date.today())
+    taxpayer_name = st.text_input("Magaca Canshuur Bixiyaha")  # Halkan ayaa laga badalay
+    revenue_today = st.number_input("Dakhliga maanta (ETB)", min_value=0.0)
+    outstanding = st.number_input("Lacagta aan weli la bixin (ETB)", min_value=0.0)
+    tin_number = st.text_input("TIN Number")
+    tax_type = st.selectbox(
+        "Nooca Canshuurta",
+        ["VAT", "TOT", "INCOME TAX", "PROFIT TAX", "LAND TAX", "PROPERTY TAX", "EXERCISE TAX", "OTHER TAX"]
+    )
+    submitted = st.form_submit_button("Ku dar xogta")
 
-    if submitted:
-        df = pd.DataFrame([{
-            "Taariikh": date_today,
-            "Tirada Macaamiisha": num_clients,
-            "Dakhli": revenue_today,
-            "Lacagta La Leeyahay": outstanding,
-            "TIN Number": tin_number,
-            "Nooca Canshuurta": tax_type
-        }])
-    else:
-        df = pd.DataFrame()
+if submitted:
+    df = pd.DataFrame([{
+        "Taariikh": date_today,
+        "Magaca Canshuur Bixiyaha": taxpayer_name,
+        "Dakhli": revenue_today,
+        "Lacagta La Leeyahay": outstanding,
+        "TIN Number": tin_number,
+        "Nooca Canshuurta": tax_type
+    }])
+else:
+    df = pd.DataFrame()
 
 # ✅ Haddii xog jirto, muuji falanqayn
 if not df.empty:
