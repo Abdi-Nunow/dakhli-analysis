@@ -45,9 +45,9 @@ with col1:
     mobile = st.text_input("Mobile")
     zone = st.selectbox("Gobolka (Zone)", list(zones.keys()))
 with col2:
-    tin = st.text_input("TIN No (12 lambar)", max_chars=12)
-    if tin and (not tin.isdigit() or len(tin) != 12):
-        st.error("TIN waa inuu noqdaa 12 lambar")
+    tin = st.text_input("TIN No (10 lambar)", max_chars=10)
+    if tin and (not tin.isdigit() or len(tin) != 10):
+        st.error("TIN waa inuu noqdaa 10 lambar")
     district = st.selectbox("Degmada (District)", zones[zone])
     kable = st.selectbox("Kable", kable_list)
 with col3:
@@ -59,8 +59,8 @@ income = st.number_input("Dakhliga Lagu Leeyahay", min_value=0.0, step=0.1)
 payment = st.number_input("Lacagta la Bixiyay", min_value=0.0, step=0.1)
 
 if st.button("Kaydi Xogta"):
-    if not tin.isdigit() or len(tin) != 12:
-        st.error("Fadlan geli TIN sax ah (12 lambar)")
+    if not tin.isdigit() or len(tin) != 10:
+        st.error("Fadlan geli TIN sax ah (10 lambar)")
     else:
         data = {
             "Magaca": name,
