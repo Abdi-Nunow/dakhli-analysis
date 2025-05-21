@@ -45,7 +45,7 @@ with col1:
     mobile = st.text_input("Mobile")
     zone = st.selectbox("Gobolka (Zone)", list(zones.keys()))
 with col2:
-    tin = st.text_input("TIN No (10 lambar)", max_chars=10)
+    tin = st.text_input("TIN No (10)", max_chars=10)
     if tin and (not tin.isdigit() or len(tin) != 10):
         st.error("TIN waa inuu noqdaa 10 lambar")
     district = st.selectbox("Degmada (District)", zones[zone])
