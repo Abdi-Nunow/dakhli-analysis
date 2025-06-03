@@ -1,98 +1,59 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import sqlite3
 from datetime import datetime
 import io
-from docx import Document  # python-docx waa in lagu rakibaa
+from docx import Document
 
-st.set_page_config(page_title="Dakhli Analysis App", layout="wide")
+# Connect to SQLite DB (file will be created if doesn't exist)
+conn = sqlite3.connect('dakhli_data.db', check_same_thread=False)
+c = conn.cursor()
 
-# Midabka background-ka
-page_bg_color = """
-<style>
-    .stApp {
-        background-color: #f0f0f5;
-    }
-</style>
-"""
-st.markdown(page_bg_color, unsafe_allow_html=True)
+# Create table if it doesn't exist
+c.execute('''
+CREATE TABLE IF NOT EXISTS dakhli (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Magaca TEXT,
+    TIN TEXT,
+    Mobile TEXT,
+    Zone TEXT,
+    District TEXT,
+    Kable TEXT,
+    Tax_Type TEXT,
+    Tax_Year TEXT,
+    Date TEXT,
+    Income REAL,
+    Payment REAL,
+    Outstanding REAL
+)
+''')
+conn.commit()
 
-st.title("Falanqaynta Dakhliga Maalinlaha ah ee Canshuuraha")
-
-zones = {
-    "Afder": ["Bare", "Elekere", "GodGod", "Hargelle", "Mirab Imi", "Ilig Dheere", "Raaso", "Qooxle", "Doollo bay", "Baarey", "Washaaqo", "Ciid Laami", "Xagar Moqor"],
-    "Dhawa": ["Hudet", "Lahey", "Mubaarak", "Qadhaadhumo", "Malka Mari", "Ceel Goof", "Ceel Orba", "Dheer Dheertu", "Ceel Dheer"],
-    "Dollo": ["Boh", "Danot", "Daratole", "Geladin", "Gal-Hamur", "Lehel-Yucub", "Warder", "Yamarugley", "Urmadag"],
-    "Erer": ["Fiq", "Lagahida", "Mayaa-muluqo", "Qubi", "Salahad", "Waangaay", "Xamaro", "Yaxoob"],
-    "Fafan": ["Awbare", "Babille", "Goljano", "Gursum", "Harawo", "Haroorays", "Harshin", "Jijiga", "Kebri Beyah", "Qooraan", "Shabeeley", "Wajale", "Tuli Guled"],
-    "Jarar": ["Araarso", "Awaare", "Bilcil Buur", "Birqod", "Daroor", "Degehabur", "Dhagaxmadow", "Dig", "Gunagado", "Misraq Gashamo", "Yoocaale"],
-    "Korahe": ["Boodaley", "Ceel-Ogadeen", "Dobawein", "Higloley", "Kebri Dahar", "Kudunbuur", "Laas-dhankayre", "Marsin", "Shekosh", "Shilavo"],
-    "Liben": ["Bokolmayo", "Deka Softi", "Dollo Ado", "Filtu", "Kersa Dula", "Gooro Bakaksa", "Gurra Damole"],
-    "Nogob": ["Ayun", "Duhun", "Elweyne", "Gerbo", "Hararey", "Hora-shagax", "Segeg"],
-    "Shabelle": ["Abaaqoorow", "Adadle", "Beercaano", "Danan", "Elele", "Ferfer", "Gode", "Imiberi", "Kelafo", "Mustahil"],
-    "Sitti": ["Adigala", "Afdem", "Ayesha", "Bike", "Dambal", "Erer", "Gablalu", "Mieso", "Shinile", "Dhunyar", "Daymeed"]
-}
-
-kable_list = [f"Kable {i:02}" for i in range(1, 41)]
-tax_types = ["VAT", "TOT", "INCOME TAX", "PROFIT TAX", "LAND TAX", "PROPERTY TAX", "EXERCISE TAX", "OTHER TAX"]
-years = [str(year) for year in range(1990, datetime.now().year + 10)]
-
-st.header("Geli Xogta Canshuur Bixiyaha")
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    name = st.text_input("Magaca Canshuur Bixiyaha")
-    mobile = st.text_input("Mobile")
-    zone = st.selectbox("Gobolka (Zone)", list(zones.keys()))
-with col2:
-    tin = st.text_input("TIN No (10)", max_chars=10)
-    if tin and (not tin.isdigit() or len(tin) != 10):
-        st.error("TIN waa inuu noqdaa 10 lambar")
-    district = st.selectbox("Degmada (District)", zones[zone])
-    kable = st.selectbox("Kable", kable_list)
-with col3:
-    tax_type = st.selectbox("Nooca Canshuurta", tax_types)
-    tax_year = st.selectbox("Sanadka Canshuurta", years)
-    date = st.date_input("Taariikhda", datetime.today())
-
-income = st.number_input("Dakhliga Lagu Leeyahay", min_value=0.0, step=0.1)
-payment = st.number_input("Lacagta la Bixiyay", min_value=0.0, step=0.1)
+# Your current UI code remains the same, then when saving data:
 
 if st.button("Kaydi Xogta"):
     if not tin.isdigit() or len(tin) != 10:
         st.error("Fadlan geli TIN sax ah (10 lambar)")
     else:
-        data = {
-            "Magaca": name,
-            "TIN": tin,
-            "Mobile": mobile,
-            "Zone": zone,
-            "District": district,
-            "Kable": kable,
-            "Tax Type": tax_type,
-            "Tax Year": tax_year,
-            "Date": date,
-            "Income": income,
-            "Payment": payment,
-            "Outstanding": income - payment
-        }
-        df_new = pd.DataFrame([data])
-
-        try:
-            df_old = pd.read_csv("dakhli_data.csv")
-            df_all = pd.concat([df_old, df_new], ignore_index=True)
-        except FileNotFoundError:
-            df_all = df_new
-
-        df_all.to_csv("dakhli_data.csv", index=False)
+        outstanding = income - payment
+        c.execute('''
+            INSERT INTO dakhli (Magaca, TIN, Mobile, Zone, District, Kable, Tax_Type, Tax_Year, Date, Income, Payment, Outstanding)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, tin, mobile, zone, district, kable, tax_type, tax_year, date.strftime('%Y-%m-%d'), income, payment, outstanding))
+        conn.commit()
         st.success("Xogta waa la keydiyay ✅")
 
 st.header("Falanqaynta Dakhliga")
-try:
-    df = pd.read_csv("dakhli_data.csv")
+
+# Fetch all data from DB
+df = pd.read_sql_query("SELECT * FROM dakhli", conn)
+
+if df.empty:
+    st.info("Xog lama helin. Fadlan geli xog si aad u aragto falanqayn.")
+else:
     st.dataframe(df)
 
-    today = str(datetime.today().date())
+    today = datetime.today().strftime('%Y-%m-%d')
     total_clients = df[df['Date'] == today].shape[0]
     total_income = df['Income'].sum()
     total_outstanding = df['Outstanding'].sum()
@@ -101,10 +62,11 @@ try:
     st.metric("Dakhliga Guud", f"{total_income:,.2f}")
     st.metric("Lacagta aan wali la Bixin", f"{total_outstanding:,.2f}")
 
-    fig = px.bar(df, x='Date', y='Income', color='Tax Type', title='Dakhliga Maalinlaha ah')
+    import plotly.express as px
+    fig = px.bar(df, x='Date', y='Income', color='Tax_Type', title='Dakhliga Maalinlaha ah')
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("Soo Degso Xogta")
+    # Excel download
     excel_buffer = io.BytesIO()
     df.to_excel(excel_buffer, index=False, engine='xlsxwriter')
     st.download_button(
@@ -114,6 +76,7 @@ try:
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
 
+    # Word download
     doc = Document()
     doc.add_heading("Xogta Dakhliga Canshuur Bixiyayaasha", 0)
     table = doc.add_table(rows=1, cols=len(df.columns))
@@ -135,6 +98,3 @@ try:
         file_name="dakhli_data.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
-
-except FileNotFoundError:
-    st.info("Xog lama helin. Fadlan geli xog si aad u aragto falanqayn.")
